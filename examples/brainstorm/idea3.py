@@ -1,11 +1,12 @@
 from random import choice
 
-from pymusic import Synth, Note, Chord, Scale, Pattern
+from pymusic import Synth, Note, Chord, Scale, Pattern, HarmonicSeries
 
 # Pattern->Scale
 # Pattern->Chord
 
 key = Scale('C4', 'major', octaves=2)
+hs = HarmonicSeries(key.root, 4)
 s1 = Synth('simple_sine')
 
 # Create a pattern with list comprehension
