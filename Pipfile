@@ -5,6 +5,8 @@ name = "pypi"
 
 [packages]
 music21 = "*"
+cython = "*"
+supercollider = "*"
 
 [dev-packages]
 
