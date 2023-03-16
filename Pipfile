@@ -8,6 +8,7 @@ music21 = "*"
 cython = "*"
 supercollider = "*"
 python-osc = "*"
+supriya = "*"
 
 [dev-packages]
 
