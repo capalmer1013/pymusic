@@ -7,6 +7,7 @@ name = "pypi"
 music21 = "*"
 cython = "*"
 supercollider = "*"
+python-osc = "*"
 
 [dev-packages]
 
