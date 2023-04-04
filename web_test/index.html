@@ -1,0 +1,97 @@
+<html>
+<head>
+<title>Web Test</title>
+</head>
+<body>
+    <h1>Web Test</h1>
+</body>
+<script>
+    // Define the DSL grammar using a regular expression
+const grammar = /^(:\s*\d+#\s*)?(:\s*\d+\/\d+\s*)?((\d+\s*=\s*\[[a-gA-G\s\[\]]+\]\s*)+)(\[\d+(\s+\d+)*\]\s*)$/;
+
+// Sample DSL code
+const dslCode = `: 3#
+: 3/4
+1 = [a b [c d]]
+2 = [a a [b ]]
+[1 1 1 2]`;
+
+// Create a function to parse the DSL code
+function parseDSL(code) {
+  if (!grammar.test(code)) {
+    throw new Error("Invalid DSL code");
+  }
+
+  // this definitely needs debugged
+  const lines = code.split("\n").map((line) => line.trim());
+  const tempo = parseInt(lines[0].substring(1).trim());
+  const timeSignature = lines[1].substring(1).trim().split("/").map((x) => parseInt(x));
+  const sections = {};
+  let i = 2;
+
+  while (lines[i] && lines[i].startsWith("1")) {
+    const [section, content] = lines[i].split("=");
+    const sectionNumber = parseInt(section.trim());
+    sections[sectionNumber] = content.trim().replace(/\s+/g, "").replace("[[", "[").replace("]]", "]").split(/[a-gA-G\[\]]+/).filter((x) => x);
+    i++;
+  }
+
+  const sequence = lines[i].substring(1).trim().replace("[", "").replace("]", "").split(" ").map((x) => parseInt(x));
+
+  return { tempo, timeSignature, sections, sequence };
+}
+
+// Parse the DSL code
+const parsedDSL = parseDSL(dslCode);
+
+// Create a function to play the music using the Web Audio API
+async function playMusic(parsedDSL) {
+  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  const notes = {
+    "a": 440,
+    "b": 493.88,
+    "c": 261.63,
+    "d": 293.66,
+    "e": 329.63,
+    "f": 349.23,
+    "g": 392.00,
+  };
+
+  const quarterNoteDuration = 60 / parsedDSL.tempo;
+  const eighthNoteDuration = quarterNoteDuration / 2;
+  let currentTime = audioContext.currentTime;
+
+  for (const sectionIndex of parsedDSL.sequence) {
+    const sectionNotes = parsedDSL.sections[sectionIndex];
+
+    for (const note of sectionNotes) {
+      const frequency = notes[note.toLowerCase()];
+      const duration = note === note.toUpperCase() ? quarterNoteDuration : eighthNoteDuration;
+
+      const oscillator = audioContext.createOscillator();
+      oscillator.frequency.value = frequency;
+      oscillator.type = "sine";
+
+      const gainNode = audioContext.createGain();
+      gainNode.gain.setValueAtTime(0, currentTime);
+      gainNode.gain.linearRampToValueAtTime(1, currentTime + 0.01);
+      gainNode.gain.linearRampToValueAtTime(0, currentTime + duration - 0.01);
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      oscillator.start(currentTime);
+      oscillator.stop(currentTime + duration);
+
+      currentTime += duration;
+    }
+  }
+}
+
+// Play the music using the parsed DSL
+playMusic(parsedDSL).catch((error) => {
+  console.error("Error playing music:", error);
+});
+
+</script>
+</html>
